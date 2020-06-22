@@ -1,9 +1,13 @@
 package com.netflix.discovery.converters;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.netflix.appinfo.DataCenterInfo;
+import com.netflix.appinfo.DataCenterInfo.Name;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Iterator;
@@ -71,6 +75,20 @@ public class EurekaJacksonCodecTest {
         InstanceInfo decoded = codec.readValue(InstanceInfo.class, source);
 
         assertTrue(EurekaEntityComparators.equal(decoded, INSTANCE_INFO_1_A1));
+    }
+
+    @Test
+    public void testOrderedSerDer() throws IOException {
+        String ordering1 = "{\"instance\":{\"app\":\"SOMESVC\",\"secureVipAddress\":\"somesvc-secure\",\"vipAddress\":\"somesvc\",\"statusPageUrl\":\"http://111.111.111.111:80/admin/info\",\"ipAddr\":\"111.111.111.111\",\"homePageUrl\":\"http://111.111.111.111:80/\",\"overriddenStatus\":\"UNKNOWN\",\"asgName\":\"someasg-v000\",\"secureHealthCheckUrl\":\"https://111.111.111.111:443/healthcheck\",\"metadata\":{},\"securePort\":{\"$\":443,\"@enabled\":\"true\"},\"isCoordinatingDiscoveryServer\":false,\"dataCenterInfo\":{\"@class\":\"com.netflix.appinfo.AmazonInfo\",\"name\":\"Amazon\",\"metadata\":{\"local-ipv4\":\"111.111.111.111\",\"instance-type\":\"m5.xlarge\",\"public-hostname\":\"ip-111.111.111.111.ec2.internal\",\"ami-id\":\"ami-aaaaaaaaaaaaaaaaa\",\"availability-zone\":\"us-east-1c\",\"local-hostname\":\"ip-111.111.111.111.ec2.internal\",\"vpc-id\":\"vpc-1234\",\"mac\":\"somemac\",\"instance-id\":\"i-fffffffffffffffff\",\"accountId\":\"1234\"}},\"hostName\":\"ip-111.111.111.111.ec2.internal\",\"countryId\":1,\"appGroupName\":\"UNKNOWN\",\"port\":{\"$\":80,\"@enabled\":\"true\"},\"instanceId\":\"i-fffffffffffffffff\",\"lastDirtyTimestamp\":1592680087985,\"lastUpdatedTimestamp\":1592680087985,\"leaseInfo\":{\"lastRenewalTimestamp\":0,\"serviceUpTimestamp\":0,\"evictionTimestamp\":0,\"renewalIntervalInSecs\":30,\"registrationTimestamp\":0,\"durationInSecs\":90},\"healthCheckUrl\":\"http://111.111.111.111:80/healthcheck\",\"status\":\"STARTING\"}}";
+        InputStream source = new ByteArrayInputStream(ordering1.getBytes());
+
+        InstanceInfo decoded = codec.readValue(InstanceInfo.class, source);
+        assertEquals(Name.Amazon, decoded.getDataCenterInfo().getName());
+
+        String ordering2 = "{\"instance\":{\"app\":\"SOMESVC\",\"secureVipAddress\":\"somesvc-secure\",\"vipAddress\":\"somesvc\",\"statusPageUrl\":\"http://111.111.111.111:80/admin/info\",\"ipAddr\":\"111.111.111.111\",\"homePageUrl\":\"http://111.111.111.111:80/\",\"overriddenStatus\":\"UNKNOWN\",\"asgName\":\"someasg-v000\",\"secureHealthCheckUrl\":\"https://111.111.111.111:443/healthcheck\",\"metadata\":{},\"securePort\":{\"$\":443,\"@enabled\":\"true\"},\"isCoordinatingDiscoveryServer\":false,\"dataCenterInfo\":{\"@class\":\"com.netflix.appinfo.AmazonInfo\",\"metadata\":{\"local-ipv4\":\"111.111.111.111\",\"instance-type\":\"m5.xlarge\",\"public-hostname\":\"ip-111.111.111.111.ec2.internal\",\"ami-id\":\"ami-aaaaaaaaaaaaaaaaa\",\"availability-zone\":\"us-east-1c\",\"local-hostname\":\"ip-111.111.111.111.ec2.internal\",\"vpc-id\":\"vpc-1234\",\"mac\":\"somemac\",\"instance-id\":\"i-fffffffffffffffff\",\"accountId\":\"1234\"},\"name\":\"Amazon\"},\"hostName\":\"ip-111.111.111.111.ec2.internal\",\"countryId\":1,\"appGroupName\":\"UNKNOWN\",\"port\":{\"$\":80,\"@enabled\":\"true\"},\"instanceId\":\"i-fffffffffffffffff\",\"lastDirtyTimestamp\":1592680087985,\"lastUpdatedTimestamp\":1592680087985,\"leaseInfo\":{\"lastRenewalTimestamp\":0,\"serviceUpTimestamp\":0,\"evictionTimestamp\":0,\"renewalIntervalInSecs\":30,\"registrationTimestamp\":0,\"durationInSecs\":90},\"healthCheckUrl\":\"http://111.111.111.111:80/healthcheck\",\"status\":\"STARTING\"}}";
+        source = new ByteArrayInputStream(ordering2.getBytes());
+        decoded = codec.readValue(InstanceInfo.class, source);
+        assertEquals(Name.Amazon, decoded.getDataCenterInfo().getName());
     }
 
     @Test
